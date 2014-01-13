@@ -1877,6 +1877,10 @@ DataConnection.prototype._handleDataMessage = function(e) {
     }
 
     this._chunkedData[id] = chunkInfo;
+
+    // BEGIN PATCH chunkTracking
+    this.emit('chunk', {total : chunkInfo.total, current : chunkInfo.count});
+    // END PATCH chunkTracking
     return;
   }
 
@@ -1953,6 +1957,12 @@ DataConnection.prototype._bufferedSend = function(msg) {
 DataConnection.prototype._trySend = function(msg) {
   try {
     this._dc.send(msg);
+
+    // BEGIN PATCH chunkTracking
+    this.emit('chunk', {total : this._totalChunks, current : this._currentChunk});
+    this._currentChunk++;
+    // END PATCH chunkTracking
+
   } catch (e) {
     this._buffering = true;
 
@@ -1984,6 +1994,12 @@ DataConnection.prototype._tryBuffer = function() {
 
 DataConnection.prototype._sendChunks = function(blob) {
   var blobs = util.chunk(blob);
+
+  // BEGIN PATCH chunkTracking
+  this._totalChunks = blobs.length;
+  this._currentChunk = 1;
+  // END PATCH chunkTracking
+
   for (var i = 0, ii = blobs.length; i < ii; i += 1) {
     var blob = blobs[i];
     this.send(blob, true);
