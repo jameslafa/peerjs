@@ -1961,6 +1961,10 @@ DataConnection.prototype._trySend = function(msg) {
     // BEGIN PATCH chunkTracking
     this.emit('chunk', {total : this._totalChunks, current : this._currentChunk});
     this._currentChunk++;
+
+    if(this._currentChunk > this._totalChunks){
+      this.emit('done');
+    }
     // END PATCH chunkTracking
 
   } catch (e) {
